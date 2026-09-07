@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyVersion></AssemblyVersion>
-    <Version>$(VersionPrefix)0.6.0</Version>
+    <Version>$(VersionPrefix)0.8.0</Version>
     <LangVersion>preview</LangVersion>
     <EnablePreviewFeatures>True</EnablePreviewFeatures>
     <Description>Library and tools for working with Age of Empire 4's Essence engine.</Description>

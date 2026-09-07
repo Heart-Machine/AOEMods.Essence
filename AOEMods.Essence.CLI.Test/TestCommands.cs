@@ -48,5 +48,45 @@ namespace AOEMods.Essence.CLI.Test
             string restoredText = File.ReadAllText(Path.Combine(extractPath, textFileName));
             Assert.Equal(textFileText, restoredText);
         }
+
+        [Fact]
+        public void SgaUnpack_WithPathFilter_OnlyExtractsFilesUnderThatSubfolder()
+        {
+            // Write a test folder structure:
+            // - root
+            //   - keep
+            //     - keep.txt: "keep me"
+            //   - skip.txt: "skip me"
+            string inPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            string keepSubfolder = Path.Combine(inPath, "keep");
+            Directory.CreateDirectory(keepSubfolder);
+
+            File.WriteAllText(Path.Combine(keepSubfolder, "keep.txt"), "keep me");
+            File.WriteAllText(Path.Combine(inPath, "skip.txt"), "skip me");
+
+            string outPath = Path.Combine(Path.GetTempPath(), Path.ChangeExtension(Path.GetRandomFileName(), ".sga"));
+
+            int resultCode = Commands.SgaPack(new SgaPackOptions()
+            {
+                InputPath = inPath,
+                OutputPath = outPath,
+                ArchiveName = "test",
+            });
+
+            Assert.Equal(0, resultCode);
+
+            string extractPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+            resultCode = Commands.SgaUnpack(new SgaUnpackOptions()
+            {
+                InputPath = outPath,
+                OutputPath = extractPath,
+                Path = "keep",
+            });
+
+            Assert.Equal(0, resultCode);
+            Assert.True(File.Exists(Path.Combine(extractPath, "keep", "keep.txt")));
+            Assert.False(File.Exists(Path.Combine(extractPath, "skip.txt")));
+        }
     }
 }

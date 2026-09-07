@@ -13,5 +13,8 @@ public class SgaUnpackOptions
     public string OutputPath { get; set; }
     [Option('v', "verbose")]
     public bool Verbose { get; set; }
+
+    [Option('p', "path", HelpText = "Only unpack files under this path within the archive (a single file or a folder, eg. \"art\\ui\\taunts\"). Both '/' and '\\' are accepted as separators. Unpacks the whole archive if omitted.")]
+    public string? Path { get; set; }
 }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
