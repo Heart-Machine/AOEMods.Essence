@@ -30,7 +30,22 @@ public static class Commands
         using var archiveFile = File.OpenRead(options.InputPath);
         var arch = Archive.FromStream(archiveFile);
 
-        var fileNodes = ArchiveNodeHelper.EnumerateChildren(arch.Tocs[0].RootFolder).OfType<IArchiveFileNode>();
+        var toc = arch.Tocs[0];
+
+        IEnumerable<IArchiveFileNode> fileNodes;
+        if (!string.IsNullOrEmpty(options.Path))
+        {
+            // Only look up files under the requested path instead of reading the whole
+            // archive, so eg. a single subfolder can be extracted from a huge .sga.
+            string sanitizedFilter = options.Path.Replace('/', '\\').Trim('\\');
+            fileNodes = toc.FilesByPath
+                .Where(pair => IsPathUnderFilter(pair.Key, sanitizedFilter))
+                .Select(pair => pair.Value);
+        }
+        else
+        {
+            fileNodes = ArchiveNodeHelper.EnumerateChildren(toc.RootFolder).OfType<IArchiveFileNode>();
+        }
 
         foreach (var fileNode in fileNodes)
         {
@@ -53,6 +68,17 @@ public static class Commands
         }
 
         return 0;
+    }
+
+    /// <summary>
+    /// Checks whether an archive file path is the requested filter path itself
+    /// or lies inside it, treating the filter as a folder prefix. Comparison is
+    /// case-insensitive to match SGA's case-insensitive path lookups.
+    /// </summary>
+    private static bool IsPathUnderFilter(string filePath, string filter)
+    {
+        return filePath.Equals(filter, StringComparison.OrdinalIgnoreCase) ||
+            filePath.StartsWith(filter + '\\', StringComparison.OrdinalIgnoreCase);
     }
 
     private static void BatchConvert(string inputDirectoryPath, string outputDirectoryPath, string pattern, string outputExtension, Action<string, string> convertFile)
